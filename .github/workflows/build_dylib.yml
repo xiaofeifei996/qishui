@@ -1,0 +1,40 @@
+name: Build QishuiAuto Dylib
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up iOS SDK
+      run: |
+        echo "Setting up SDK..."
+        xcrun --sdk iphoneos --show-sdk-path
+
+    - name: Compile Dylib
+      run: |
+        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+        echo "Using SDK: $SDK_PATH"
+        
+        clang++ -dynamiclib \
+          -target arm64-apple-ios14.0 \
+          -isysroot "$SDK_PATH" \
+          -framework Foundation \
+          -framework UIKit \
+          QishuiAuto.mm \
+          -o QishuiAuto.dylib
+          
+        file QishuiAuto.dylib
+        ls -lh QishuiAuto.dylib
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: QishuiAuto-dylib
+        path: QishuiAuto.dylib
